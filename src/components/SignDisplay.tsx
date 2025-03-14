@@ -1,38 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SignAvatar from './SignAvatar';
 
 interface SignDisplayProps {
   text: string;
 }
-
-// Mock data for sign language animations
-// In a real app, this would be replaced with actual sign language animations or images
-const mockSigns: Record<string, string> = {
-  hello: "👋",
-  world: "🌎",
-  my: "👉",
-  name: "📛",
-  is: "🟰",
-  thank: "🙏",
-  you: "👉",
-  please: "🤲",
-  sorry: "🙇",
-  yes: "👍",
-  no: "👎",
-  help: "🆘",
-  want: "👐",
-  love: "❤️",
-  good: "👌",
-  bad: "👎",
-  how: "❓",
-  what: "❓",
-  where: "📍",
-  when: "⏰",
-  who: "👤",
-  why: "❓",
-  // Add more as needed
-};
 
 const SignDisplay = ({ text }: SignDisplayProps) => {
   const [words, setWords] = useState<string[]>([]);
@@ -58,22 +31,18 @@ const SignDisplay = ({ text }: SignDisplayProps) => {
     wordsArray.forEach((_, index) => {
       setTimeout(() => {
         setCurrentWordIndex(index);
-      }, index * 1000); // Show each word for 1 second
+      }, index * 1500); // Show each word for 1.5 seconds
     });
     
     // Reset after all words are shown
     setTimeout(() => {
       setIsAnimating(false);
-    }, wordsArray.length * 1000 + 1000);
-  };
-
-  const getSignForWord = (word: string): string => {
-    return mockSigns[word.toLowerCase()] || '🔄'; // Return the sign or a default
+    }, wordsArray.length * 1500 + 500);
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="glass-card p-6 rounded-2xl min-h-[200px] flex flex-col items-center justify-center">
+      <div className="glass-card p-6 rounded-2xl min-h-[350px] flex flex-col items-center justify-center">
         {text ? (
           <div className="space-y-6 w-full">
             <div className="text-center">
@@ -81,22 +50,20 @@ const SignDisplay = ({ text }: SignDisplayProps) => {
               <p className="text-sm text-muted-foreground">Visualizing: {text}</p>
             </div>
             
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center justify-center min-h-[250px]">
               <AnimatePresence mode="wait">
                 {isAnimating && (
                   <motion.div
                     key={currentWordIndex}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     className="flex flex-col items-center"
                   >
-                    <div className="text-7xl mb-4">
-                      {currentWordIndex >= 0 ? getSignForWord(words[currentWordIndex]) : "👋"}
-                    </div>
-                    <div className="text-xl font-medium text-primary">
-                      {currentWordIndex >= 0 ? words[currentWordIndex] : "Ready"}
-                    </div>
+                    <SignAvatar 
+                      word={currentWordIndex >= 0 ? words[currentWordIndex] : "hello"} 
+                      isActive={currentWordIndex >= 0} 
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -120,12 +87,32 @@ const SignDisplay = ({ text }: SignDisplayProps) => {
         ) : (
           <div className="text-center">
             <motion.div 
-              className="text-5xl mb-4"
-              animate={{ rotate: [0, 15, 0, -15, 0] }}
+              className="relative w-48 h-48 mx-auto mb-4 flex items-center justify-center"
+              animate={{ rotate: [0, 5, 0, -5, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >
-              👋
+              {/* Default avatar in resting position */}
+              <div className="w-24 h-24 bg-amber-200 rounded-full flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <div className="flex space-x-5 mb-2">
+                    <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                    <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                  </div>
+                  <div className="w-4 h-1 bg-gray-800 rounded-full mt-2"></div>
+                </div>
+              </div>
+              
+              <div className="absolute w-20 h-40 bg-blue-500 rounded-2xl top-16"></div>
+              
+              <div className="absolute w-8 h-24 bg-blue-500 rounded-full -left-2 top-20">
+                <div className="absolute w-10 h-10 bg-amber-200 rounded-full bottom-0 -right-1"></div>
+              </div>
+              
+              <div className="absolute w-8 h-24 bg-blue-500 rounded-full -right-2 top-20">
+                <div className="absolute w-10 h-10 bg-amber-200 rounded-full bottom-0 -left-1"></div>
+              </div>
             </motion.div>
+            
             <h3 className="text-xl font-medium text-foreground/70">Speak to see sign language</h3>
             <p className="text-sm text-muted-foreground mt-2">
               Your words will be visualized as sign language gestures
