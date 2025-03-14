@@ -108,7 +108,25 @@ export const signAnimations: Record<string, any> = {
   }
 };
 
-// Simple 3D Avatar Model with animated parts
+// Simple interpolation function
+const interpolate = (progress: number, timings: number[], values: number[]) => {
+  if (progress <= timings[0]) return values[0];
+  if (progress >= timings[timings.length - 1]) return values[values.length - 1];
+  
+  // Find the appropriate segment
+  for (let i = 0; i < timings.length - 1; i++) {
+    if (progress >= timings[i] && progress <= timings[i + 1]) {
+      // Calculate the normalized position within this segment
+      const segmentProgress = (progress - timings[i]) / (timings[i + 1] - timings[i]);
+      // Linear interpolation between the two values
+      return values[i] + segmentProgress * (values[i + 1] - values[i]);
+    }
+  }
+  
+  return values[0]; // Fallback
+};
+
+// Realistic 3D Avatar Model with animated parts
 export const AvatarModel = ({ animation, isActive }: { animation: any, isActive: boolean }) => {
   const headRef = useRef<THREE.Group>(null);
   const bodyRef = useRef<THREE.Group>(null);
@@ -195,91 +213,259 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
     }
   });
   
-  // Simple interpolation function
-  const interpolate = (progress: number, timings: number[], values: number[]) => {
-    if (progress <= timings[0]) return values[0];
-    if (progress >= timings[timings.length - 1]) return values[values.length - 1];
-    
-    // Find the appropriate segment
-    for (let i = 0; i < timings.length - 1; i++) {
-      if (progress >= timings[i] && progress <= timings[i + 1]) {
-        // Calculate the normalized position within this segment
-        const segmentProgress = (progress - timings[i]) / (timings[i + 1] - timings[i]);
-        // Linear interpolation between the two values
-        return values[i] + segmentProgress * (values[i + 1] - values[i]);
-      }
-    }
-    
-    return values[0]; // Fallback
-  };
+  // Create materials with better textures and colors
+  const skinMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#FDE1D3", 
+    roughness: 0.7,
+    metalness: 0.1
+  });
+  
+  const hairMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#403E43", 
+    roughness: 0.8,
+    metalness: 0.1
+  });
+  
+  const shirtMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#3b82f6", 
+    roughness: 0.5,
+    metalness: 0.2
+  });
+  
+  const pantsMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#1e3a8a", 
+    roughness: 0.6,
+    metalness: 0.1
+  });
   
   return (
     <group position={[0, -1, 0]}>
-      {/* Head */}
+      {/* Head with more detailed features */}
       <group ref={headRef} position={[0, 2.7, 0]}>
-        <mesh castShadow>
+        {/* Base head */}
+        <mesh castShadow receiveShadow>
           <sphereGeometry args={[0.5, 32, 32]} />
-          <meshStandardMaterial color="#ffdbac" />
+          <primitive object={skinMaterial} />
         </mesh>
-        {/* Eyes */}
-        <mesh position={[0.15, 0.1, 0.4]}>
-          <sphereGeometry args={[0.08, 16, 16]} />
-          <meshStandardMaterial color="black" />
+        
+        {/* Hair */}
+        <mesh castShadow position={[0, 0.2, 0]} scale={[1.1, 0.35, 1.1]}>
+          <sphereGeometry args={[0.45, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <primitive object={hairMaterial} />
         </mesh>
-        <mesh position={[-0.15, 0.1, 0.4]}>
-          <sphereGeometry args={[0.08, 16, 16]} />
-          <meshStandardMaterial color="black" />
-        </mesh>
-        {/* Mouth */}
-        <mesh position={[0, -0.1, 0.4]} rotation={[0, 0, 0]}>
+        
+        {/* Eyes with more detail */}
+        <group position={[0.15, 0.1, 0.4]}>
+          {/* Eye white */}
+          <mesh>
+            <sphereGeometry args={[0.1, 16, 16]} />
+            <meshStandardMaterial color="white" />
+          </mesh>
+          
+          {/* Iris and pupil */}
+          <mesh position={[0, 0, 0.05]}>
+            <sphereGeometry args={[0.06, 16, 16]} />
+            <meshStandardMaterial color="#5B9BD5" />
+          </mesh>
+          
+          <mesh position={[0, 0, 0.08]}>
+            <sphereGeometry args={[0.03, 16, 16]} />
+            <meshStandardMaterial color="black" />
+          </mesh>
+        </group>
+        
+        <group position={[-0.15, 0.1, 0.4]}>
+          {/* Eye white */}
+          <mesh>
+            <sphereGeometry args={[0.1, 16, 16]} />
+            <meshStandardMaterial color="white" />
+          </mesh>
+          
+          {/* Iris and pupil */}
+          <mesh position={[0, 0, 0.05]}>
+            <sphereGeometry args={[0.06, 16, 16]} />
+            <meshStandardMaterial color="#5B9BD5" />
+          </mesh>
+          
+          <mesh position={[0, 0, 0.08]}>
+            <sphereGeometry args={[0.03, 16, 16]} />
+            <meshStandardMaterial color="black" />
+          </mesh>
+        </group>
+        
+        {/* Mouth with more detail */}
+        <mesh position={[0, -0.15, 0.4]} rotation={[0, 0, 0]}>
           <boxGeometry args={[0.2, 0.05, 0.05]} />
           <meshStandardMaterial color="#c1665a" />
         </mesh>
+        
+        {/* Nose */}
+        <mesh position={[0, 0, 0.45]}>
+          <sphereGeometry args={[0.07, 16, 16]} />
+          <primitive object={skinMaterial} />
+        </mesh>
+        
+        {/* Ears */}
+        <mesh position={[0.5, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <capsuleGeometry args={[0.08, 0.15, 8, 8]} />
+          <primitive object={skinMaterial} />
+        </mesh>
+        
+        <mesh position={[-0.5, 0, 0]} rotation={[0, 0, -Math.PI / 2]}>
+          <capsuleGeometry args={[0.08, 0.15, 8, 8]} />
+          <primitive object={skinMaterial} />
+        </mesh>
       </group>
       
-      {/* Body */}
+      {/* Neck */}
+      <mesh castShadow position={[0, 2.3, 0]}>
+        <cylinderGeometry args={[0.15, 0.2, 0.3, 16]} />
+        <primitive object={skinMaterial} />
+      </mesh>
+      
+      {/* Body with better proportions */}
       <group ref={bodyRef} position={[0, 1.5, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[1, 1.5, 0.5]} />
-          <meshStandardMaterial color="#3b82f6" />
+        {/* Torso */}
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[0.9, 1.2, 0.5]} />
+          <primitive object={shirtMaterial} />
+        </mesh>
+        
+        {/* Collar */}
+        <mesh position={[0, 0.6, 0.25]} rotation={[Math.PI / 4, 0, 0]}>
+          <boxGeometry args={[0.6, 0.1, 0.1]} />
+          <meshStandardMaterial color="#285fc4" />
         </mesh>
       </group>
       
-      {/* Right Arm */}
+      {/* Right Arm with joints */}
       <group ref={rightArmRef} position={[0.6, 2, 0]}>
-        <mesh castShadow position={[0, -0.5, 0]}>
-          <boxGeometry args={[0.2, 1, 0.2]} />
-          <meshStandardMaterial color="#3b82f6" />
+        {/* Upper arm */}
+        <mesh castShadow position={[0, -0.25, 0]}>
+          <capsuleGeometry args={[0.12, 0.5, 8, 8]} />
+          <primitive object={shirtMaterial} />
         </mesh>
-        {/* Right Hand */}
-        <mesh castShadow position={[0, -1.1, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial color="#ffdbac" />
+        
+        {/* Elbow joint */}
+        <mesh position={[0, -0.5, 0]}>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <primitive object={shirtMaterial} />
         </mesh>
+        
+        {/* Lower arm */}
+        <mesh castShadow position={[0, -0.8, 0]}>
+          <capsuleGeometry args={[0.1, 0.5, 8, 8]} />
+          <primitive object={skinMaterial} />
+        </mesh>
+        
+        {/* Right Hand with more detail */}
+        <group position={[0, -1.1, 0]}>
+          {/* Palm */}
+          <mesh castShadow>
+            <boxGeometry args={[0.15, 0.25, 0.08]} />
+            <primitive object={skinMaterial} />
+          </mesh>
+          
+          {/* Thumb */}
+          <mesh castShadow position={[-0.1, -0.1, 0]} rotation={[0, 0, -Math.PI / 4]}>
+            <capsuleGeometry args={[0.03, 0.1, 8, 8]} />
+            <primitive object={skinMaterial} />
+          </mesh>
+          
+          {/* Fingers */}
+          {[0.05, 0.02, -0.01, -0.04].map((x, i) => (
+            <mesh key={i} castShadow position={[x, -0.2, 0]} rotation={[0, 0, 0]}>
+              <capsuleGeometry args={[0.02, 0.15, 8, 8]} />
+              <primitive object={skinMaterial} />
+            </mesh>
+          ))}
+        </group>
       </group>
       
-      {/* Left Arm */}
+      {/* Left Arm with joints */}
       <group ref={leftArmRef} position={[-0.6, 2, 0]}>
-        <mesh castShadow position={[0, -0.5, 0]}>
-          <boxGeometry args={[0.2, 1, 0.2]} />
-          <meshStandardMaterial color="#3b82f6" />
+        {/* Upper arm */}
+        <mesh castShadow position={[0, -0.25, 0]}>
+          <capsuleGeometry args={[0.12, 0.5, 8, 8]} />
+          <primitive object={shirtMaterial} />
         </mesh>
-        {/* Left Hand */}
-        <mesh castShadow position={[0, -1.1, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial color="#ffdbac" />
+        
+        {/* Elbow joint */}
+        <mesh position={[0, -0.5, 0]}>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <primitive object={shirtMaterial} />
+        </mesh>
+        
+        {/* Lower arm */}
+        <mesh castShadow position={[0, -0.8, 0]}>
+          <capsuleGeometry args={[0.1, 0.5, 8, 8]} />
+          <primitive object={skinMaterial} />
+        </mesh>
+        
+        {/* Left Hand with more detail */}
+        <group position={[0, -1.1, 0]}>
+          {/* Palm */}
+          <mesh castShadow>
+            <boxGeometry args={[0.15, 0.25, 0.08]} />
+            <primitive object={skinMaterial} />
+          </mesh>
+          
+          {/* Thumb */}
+          <mesh castShadow position={[0.1, -0.1, 0]} rotation={[0, 0, Math.PI / 4]}>
+            <capsuleGeometry args={[0.03, 0.1, 8, 8]} />
+            <primitive object={skinMaterial} />
+          </mesh>
+          
+          {/* Fingers */}
+          {[0.05, 0.02, -0.01, -0.04].map((x, i) => (
+            <mesh key={i} castShadow position={[-x, -0.2, 0]} rotation={[0, 0, 0]}>
+              <capsuleGeometry args={[0.02, 0.15, 8, 8]} />
+              <primitive object={skinMaterial} />
+            </mesh>
+          ))}
+        </group>
+      </group>
+      
+      {/* Legs with better proportions */}
+      <group position={[0.25, 0.4, 0]}>
+        {/* Upper leg */}
+        <mesh castShadow position={[0, -0.3, 0]}>
+          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
+          <primitive object={pantsMaterial} />
+        </mesh>
+        
+        {/* Lower leg */}
+        <mesh castShadow position={[0, -0.9, 0]}>
+          <capsuleGeometry args={[0.12, 0.6, 8, 8]} />
+          <primitive object={pantsMaterial} />
+        </mesh>
+        
+        {/* Shoe */}
+        <mesh castShadow position={[0, -1.3, 0.1]}>
+          <boxGeometry args={[0.2, 0.15, 0.4]} />
+          <meshStandardMaterial color="#403E43" />
         </mesh>
       </group>
       
-      {/* Legs */}
-      <mesh castShadow position={[0.25, 0.35, 0]}>
-        <boxGeometry args={[0.3, 1, 0.3]} />
-        <meshStandardMaterial color="#1e3a8a" />
-      </mesh>
-      <mesh castShadow position={[-0.25, 0.35, 0]}>
-        <boxGeometry args={[0.3, 1, 0.3]} />
-        <meshStandardMaterial color="#1e3a8a" />
-      </mesh>
+      <group position={[-0.25, 0.4, 0]}>
+        {/* Upper leg */}
+        <mesh castShadow position={[0, -0.3, 0]}>
+          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
+          <primitive object={pantsMaterial} />
+        </mesh>
+        
+        {/* Lower leg */}
+        <mesh castShadow position={[0, -0.9, 0]}>
+          <capsuleGeometry args={[0.12, 0.6, 8, 8]} />
+          <primitive object={pantsMaterial} />
+        </mesh>
+        
+        {/* Shoe */}
+        <mesh castShadow position={[0, -1.3, 0.1]}>
+          <boxGeometry args={[0.2, 0.15, 0.4]} />
+          <meshStandardMaterial color="#403E43" />
+        </mesh>
+      </group>
     </group>
   );
 };
@@ -301,6 +487,14 @@ const SignAvatar = ({ word, isActive }: SignAvatarProps) => {
         <Canvas camera={{ position: [0, 1.5, 5], fov: 50 }} shadows>
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={0.8} castShadow />
+          <pointLight position={[-10, 5, -10]} intensity={0.5} castShadow />
+          <directionalLight
+            position={[0, 10, 5]}
+            intensity={0.5}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+          />
           <OrbitControls 
             enableZoom={false} 
             enablePan={false} 
@@ -309,6 +503,14 @@ const SignAvatar = ({ word, isActive }: SignAvatarProps) => {
             minPolarAngle={Math.PI / 4}
           />
           <AvatarModel animation={animation} isActive={isActive} />
+          <mesh 
+            rotation={[-Math.PI / 2, 0, 0]} 
+            position={[0, -1.5, 0]} 
+            receiveShadow
+          >
+            <planeGeometry args={[10, 10]} />
+            <shadowMaterial opacity={0.2} />
+          </mesh>
         </Canvas>
       </div>
       <div className="mt-4 text-xl font-medium text-primary">{word}</div>
