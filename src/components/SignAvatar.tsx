@@ -11,7 +11,7 @@ interface SignAvatarProps {
 }
 
 // Dictionary mapping words to sign animation parameters
-const signAnimations: Record<string, any> = {
+export const signAnimations: Record<string, any> = {
   hello: {
     rightArm: {
       initial: { rotation: [0, 0, 0] },
@@ -109,7 +109,7 @@ const signAnimations: Record<string, any> = {
 };
 
 // Simple 3D Avatar Model with animated parts
-const AvatarModel = ({ animation, isActive }: { animation: any, isActive: boolean }) => {
+export const AvatarModel = ({ animation, isActive }: { animation: any, isActive: boolean }) => {
   const headRef = useRef<THREE.Group>(null);
   const bodyRef = useRef<THREE.Group>(null);
   const rightArmRef = useRef<THREE.Group>(null);

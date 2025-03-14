@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SignAvatar from './SignAvatar';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import { AvatarModel, signAnimations } from './SignAvatar';
 
 interface SignDisplayProps {
   text: string;
@@ -114,11 +117,5 @@ const SignDisplay = ({ text }: SignDisplayProps) => {
     </div>
   );
 };
-
-// Import the 3D components for the default idle state
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { AvatarModel } from './SignAvatar';
-import { signAnimations } from './SignAvatar';
 
 export default SignDisplay;
