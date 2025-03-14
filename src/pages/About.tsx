@@ -1,21 +1,21 @@
+
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+
 const About = () => {
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <motion.section className="mb-16" initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.6
-        }}>
+          <motion.section 
+            className="mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="glass-card rounded-2xl p-8">
               <h1 className="text-3xl font-bold mb-6">About SignWave</h1>
               
@@ -60,31 +60,29 @@ const About = () => {
             </div>
           </motion.section>
           
-          <motion.section className="mb-16" initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} transition={{
-          delay: 0.3,
-          duration: 0.6
-        }}>
+          <motion.section 
+            className="mb-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             <div className="glass-card rounded-2xl p-8">
               <h2 className="text-2xl font-semibold mb-6">Our Team</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-primary/10 rounded-full mb-4 flex items-center justify-center">
-                    <span className="text-3xl">👨‍🎨</span>
+                    <span className="text-3xl">👩‍💻</span>
                   </div>
-                  <h3 className="text-lg font-medium">Thomas F. Wolobah Jr</h3>
+                  <h3 className="text-lg font-medium">Emma Johnson</h3>
                   <p className="text-sm text-muted-foreground">Founder & Lead Developer</p>
                 </div>
                 
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-accent/10 rounded-full mb-4 flex items-center justify-center">
-                    <span className="text-3xl">👩‍💻</span>
+                    <span className="text-3xl">👨‍🎨</span>
                   </div>
-                  <h3 className="text-lg font-medium">Himavarsha</h3>
+                  <h3 className="text-lg font-medium">Michael Chen</h3>
                   <p className="text-sm text-muted-foreground">UX Designer</p>
                 </div>
               </div>
@@ -94,6 +92,8 @@ const About = () => {
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default About;
