@@ -21,21 +21,40 @@ const ApiKeyDialog = ({ open, onOpenChange }: ApiKeyDialogProps) => {
     }
   }, [open]);
 
+  const validateApiKey = (key: string): boolean => {
+    // Basic validation for fal.ai key format
+    // Real fal.ai keys typically start with "fal_" or "sk-"
+    return !!key.trim() && (key.startsWith("fal_") || key.startsWith("sk-"));
+  };
+
   const handleSave = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem("FAL_AI_API_KEY", apiKey.trim());
-      toast({
-        title: "API Key Saved",
-        description: "Your fal.ai API key has been saved successfully.",
-      });
-      onOpenChange(false);
-    } else {
+    const trimmedKey = apiKey.trim();
+    if (!trimmedKey) {
       toast({
         title: "API Key Required",
         description: "Please enter a valid API key.",
         variant: "destructive",
       });
+      return;
     }
+    
+    if (!validateApiKey(trimmedKey)) {
+      toast({
+        title: "Invalid API Key Format",
+        description: "Your API key should start with 'fal_' or 'sk-'.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    localStorage.setItem("FAL_AI_API_KEY", trimmedKey);
+    window.dispatchEvent(new Event('storage')); // Trigger the storage event for listeners
+    
+    toast({
+      title: "API Key Saved",
+      description: "Your fal.ai API key has been saved successfully.",
+    });
+    onOpenChange(false);
   };
 
   return (
@@ -51,12 +70,15 @@ const ApiKeyDialog = ({ open, onOpenChange }: ApiKeyDialogProps) => {
         
         <div className="py-4">
           <Input
-            placeholder="Enter your fal.ai API key here"
+            placeholder="Enter your fal.ai API key here (starts with fal_ or sk-)"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             type="password"
             className="w-full"
           />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Get your API key from the <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">fal.ai dashboard</a>.
+          </p>
         </div>
         
         <DialogFooter>
