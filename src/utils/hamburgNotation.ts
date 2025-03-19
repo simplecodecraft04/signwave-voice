@@ -130,22 +130,43 @@ export const hamburgToAnimationParams = (gesture: string): any => {
         duration: 1.5,
         repeat: 1
       }
+    },
+    rightHand: {
+      initial: { rotation: [0, 0, 0] },
+      animate: {
+        rotation: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+        timing: [0, 0.5, 1],
+        duration: 1.5,
+        repeat: 1
+      }
     }
   };
   
-  // Hand position mapping
+  // Hand position mapping with improved gesture animations
   if (gesture.includes('-chest-')) {
-    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.3, 0, 0], [0, 0, 0]];
+    // Chest gesture motion (e.g., "thank you", "please")
+    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.4, 0, 0], [0, 0, 0]];
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.3, 0, 0], [0, 0, 0]];
   } else if (gesture.includes('-outward') || gesture.includes('-forward')) {
-    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.3, 0.3, 0], [0, 0, 0]];
+    // Outward gesture motion (e.g., "hello", "you")
+    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.3, 0.4, 0], [0, 0, 0]];
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0, 0.2, 0.3], [0, 0, 0]];
   } else if (gesture.includes('-circular-')) {
+    // Circular gesture motion (e.g., "play", "continue")
     animParams.rightArm.animate.rotation = [[0, 0, 0], [0.3, 0.2, 0.2], [0, 0, 0.2], [0, 0, 0]];
     animParams.rightArm.animate.timing = [0, 0.3, 0.7, 1];
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.2, 0.1, 0.2], [0.1, 0, 0.3], [0, 0, 0]];
+    animParams.rightHand.animate.timing = [0, 0.3, 0.7, 1];
   } else if (gesture.includes('-wave-')) {
-    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.2, 0, 0.2], [0.2, 0, -0.2], [0, 0, 0]];
+    // Waving gesture motion (e.g., "hello", "goodbye")
+    animParams.rightArm.animate.rotation = [[0, 0, 0], [0.2, 0, 0.3], [0.2, 0, -0.3], [0, 0, 0]];
     animParams.rightArm.animate.timing = [0, 0.3, 0.7, 1];
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0, 0, 0.2], [0, 0, -0.2], [0, 0, 0]];
+    animParams.rightHand.animate.timing = [0, 0.3, 0.7, 1];
   } else if (gesture.includes('-point-')) {
-    animParams.rightArm.animate.rotation = [[0, 0, 0], [0, 0.4, 0.2], [0, 0, 0]];
+    // Pointing gesture motion (e.g., "you", "there")
+    animParams.rightArm.animate.rotation = [[0, 0, 0], [0, 0.5, 0.3], [0, 0, 0]];
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.3, 0, 0], [0, 0, 0]];
   }
   
   // Add head movements if specified
@@ -176,12 +197,40 @@ export const hamburgToAnimationParams = (gesture: string): any => {
     animParams.leftArm = {
       initial: { rotation: [0, 0, 0] },
       animate: {
-        rotation: [[0, 0, 0], [0.3, -0.3, 0], [0, 0, 0]],
+        rotation: [[0, 0, 0], [0.3, -0.4, 0], [0, 0, 0]],
         timing: [0, 0.5, 1],
         duration: 1.5,
         repeat: 1
       }
     };
+    
+    animParams.leftHand = {
+      initial: { rotation: [0, 0, 0] },
+      animate: {
+        rotation: [[0, 0, 0], [0.2, -0.2, 0], [0, 0, 0]],
+        timing: [0, 0.5, 1],
+        duration: 1.5,
+        repeat: 1
+      }
+    };
+  }
+  
+  // Special hand shapes based on notation
+  if (gesture.includes('B-hand')) {
+    // B-hand shape: flat hand with fingers together
+    // No special animation needed - this is our default hand pose
+  } else if (gesture.includes('A-hand')) {
+    // A-hand shape: fist
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.5, 0, 0], [0, 0, 0]];
+  } else if (gesture.includes('C-hand')) {
+    // C-hand shape: curved hand like holding a cup
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.3, 0.2, 0.3], [0, 0, 0]];
+  } else if (gesture.includes('G-hand') || gesture.includes('index')) {
+    // G-hand shape: pointing with index finger
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.3, 0.1, 0.1], [0, 0, 0]];
+  } else if (gesture.includes('V-hand')) {
+    // V-hand shape: peace sign / victory
+    animParams.rightHand.animate.rotation = [[0, 0, 0], [0.4, 0.2, 0.1], [0, 0, 0]];
   }
   
   return animParams;
