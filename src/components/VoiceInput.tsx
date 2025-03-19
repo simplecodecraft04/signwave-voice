@@ -2,15 +2,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { textToHamburgNotation } from '../utils/hamburgNotation';
 
 interface VoiceInputProps {
-  onTranscription: (text: string) => void;
+  onTranscription: (text: string, hamburgNotation: string) => void;
 }
 
 const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hamburgNotation, setHamburgNotation] = useState('');
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
   useEffect(() => {
@@ -32,6 +34,11 @@ const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
       const transcriptResult = result[0].transcript;
       
       setTranscript(transcriptResult);
+      
+      // Convert to Hamburg Notation
+      const hamburg = textToHamburgNotation(transcriptResult);
+      setHamburgNotation(hamburg);
+      
       setIsAnimating(true);
     };
     
@@ -60,18 +67,21 @@ const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
       }
       setIsListening(true);
       setTranscript('');
+      setHamburgNotation('');
     }
   };
   
   const handleSubmit = () => {
     if (transcript.trim()) {
-      onTranscription(transcript);
+      onTranscription(transcript, hamburgNotation);
       setTranscript('');
+      setHamburgNotation('');
     }
   };
   
   const resetTranscript = () => {
     setTranscript('');
+    setHamburgNotation('');
   };
   
   return (
@@ -79,18 +89,36 @@ const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
       <div className="glass-card p-6 rounded-2xl">
         <div className="flex flex-col items-center space-y-6">
           <div className="w-full">
-            <div className="relative w-full h-32 bg-secondary/50 rounded-xl p-4 overflow-hidden">
+            <div className="relative w-full min-h-32 bg-secondary/50 rounded-xl p-4 overflow-hidden">
               <AnimatePresence>
                 {transcript ? (
-                  <motion.p
-                    key="transcript"
+                  <motion.div
+                    key="transcript-content"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-foreground/90 text-lg font-medium"
+                    className="space-y-3"
                   >
-                    {transcript}
-                  </motion.p>
+                    <motion.p
+                      key="transcript"
+                      className="text-foreground/90 text-lg font-medium"
+                    >
+                      {transcript}
+                    </motion.p>
+                    
+                    {hamburgNotation && (
+                      <motion.div
+                        key="hamburg"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-muted-foreground text-sm font-medium bg-secondary/30 p-2 rounded-md"
+                      >
+                        <div className="text-xs text-primary/70 mb-1">Hamburg Notation:</div>
+                        {hamburgNotation}
+                      </motion.div>
+                    )}
+                  </motion.div>
                 ) : (
                   <motion.p
                     key="placeholder"

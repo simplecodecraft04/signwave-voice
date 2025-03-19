@@ -8,9 +8,11 @@ import Footer from '../components/Footer';
 
 const Index = () => {
   const [transcription, setTranscription] = useState('');
+  const [hamburgNotation, setHamburgNotation] = useState('');
 
-  const handleTranscription = (text: string) => {
+  const handleTranscription = (text: string, hamburg: string) => {
     setTranscription(text);
+    setHamburgNotation(hamburg);
   };
 
   return (
@@ -52,7 +54,7 @@ const Index = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <VoiceInput onTranscription={handleTranscription} />
-            <SignDisplay text={transcription} />
+            <SignDisplay text={transcription} hamburgNotation={hamburgNotation} />
           </motion.section>
           
           <motion.section 
@@ -91,9 +93,9 @@ const Index = () => {
                       🤲
                     </motion.span>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Sign Translation</h3>
+                  <h3 className="text-lg font-medium mb-2">Hamburg Notation</h3>
                   <p className="text-muted-foreground text-sm">
-                    Real-time translation of spoken words to sign language
+                    Converts speech to standardized sign language notation
                   </p>
                 </div>
                 
