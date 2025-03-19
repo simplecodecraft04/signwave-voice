@@ -73,67 +73,71 @@ export const generateSignLanguageVideo = async ({ prompt, apiKey }: FalAiOptions
     // Extract video URL from response based on the actual structure
     let videoUrl = null;
     
-    if (result && typeof result === 'object') {
-      // First check if there's a data.video object structure
-      if (result.data?.video?.url) {
-        videoUrl = result.data.video.url;
+    // Use type assertion to avoid TypeScript errors
+    const resultObj = result as any;
+    
+    if (resultObj && typeof resultObj === 'object') {
+      // Check data.video.url path
+      if (resultObj.data?.video?.url) {
+        videoUrl = resultObj.data.video.url;
       } 
-      // Then check for data.video direct URL
-      else if (result.data?.video) {
-        videoUrl = result.data.video;
+      // Check if data.video is a string (direct URL)
+      else if (typeof resultObj.data?.video === 'string') {
+        videoUrl = resultObj.data.video;
       }
-      // Then check for data.video_url
-      else if (result.data?.video_url) {
-        videoUrl = result.data.video_url;
+      // Check data.video_url path
+      else if (resultObj.data?.video_url) {
+        videoUrl = resultObj.data.video_url;
       }
-      // Check various possible nested structures
-      else if (result.output?.video?.url) {
-        videoUrl = result.output.video.url;
+      // Check possible paths if output is present
+      else if (resultObj.output?.video?.url) {
+        videoUrl = resultObj.output.video.url;
       }
-      else if (result.output?.video) {
-        videoUrl = result.output.video;
+      else if (typeof resultObj.output?.video === 'string') {
+        videoUrl = resultObj.output.video;
       }
-      else if (result.output?.video_url) {
-        videoUrl = result.output.video_url;
+      else if (resultObj.output?.video_url) {
+        videoUrl = resultObj.output.video_url;
       }
-      // Direct video_url at root level
-      else if (result.video_url) {
-        videoUrl = result.video_url;
+      // Check root level properties
+      else if (resultObj.video_url) {
+        videoUrl = resultObj.video_url;
       }
-      // Direct url at root level
-      else if (result.url) {
-        videoUrl = result.url;
+      else if (resultObj.url) {
+        videoUrl = resultObj.url;
       }
       
-      // Try to look for video inside nested data structure
-      const data = result.data;
-      if (data && typeof data === 'object' && !videoUrl) {
+      // Deep search for video URL if still not found
+      if (!videoUrl && resultObj.data) {
         // Log the full data structure to help debug
-        console.log("Inspecting data structure for video URL:", JSON.stringify(data, null, 2));
+        console.log("Inspecting data structure for video URL:", JSON.stringify(resultObj.data, null, 2));
         
-        // Look for any property that might contain a video URL
-        for (const key in data) {
-          const value = data[key];
-          if (typeof value === 'string' && 
-              (value.endsWith('.mp4') || 
-               value.includes('video') || 
-               value.includes('mp4'))) {
-            videoUrl = value;
-            break;
-          } else if (value && typeof value === 'object') {
-            // Check one level deeper
-            for (const nestedKey in value) {
-              const nestedValue = value[nestedKey];
-              if (typeof nestedValue === 'string' && 
-                  (nestedValue.endsWith('.mp4') || 
-                   nestedValue.includes('video') || 
-                   nestedValue.includes('mp4'))) {
-                videoUrl = nestedValue;
-                break;
-              }
+        const searchForVideoUrl = (obj: any): string | null => {
+          if (!obj || typeof obj !== 'object') return null;
+          
+          // Look for properties directly
+          for (const key in obj) {
+            const value = obj[key];
+            
+            // Check if the value is a string that looks like a video URL
+            if (typeof value === 'string' && 
+                (value.endsWith('.mp4') || 
+                 value.includes('video') || 
+                 value.includes('mp4'))) {
+              return value;
+            }
+            
+            // Recursively check nested objects (but not too deep)
+            if (value && typeof value === 'object') {
+              const nestedUrl = searchForVideoUrl(value);
+              if (nestedUrl) return nestedUrl;
             }
           }
-        }
+          
+          return null;
+        };
+        
+        videoUrl = searchForVideoUrl(resultObj.data);
       }
     }
 
