@@ -3,11 +3,14 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import VoiceInput from '../components/VoiceInput';
-import SignDisplay from '../components/SignDisplay';
 import Footer from '../components/Footer';
+import FalVideoDisplay from '../components/FalVideoDisplay';
+import { Input } from '../components/ui/input';
+import { Key } from 'lucide-react';
 
 const Index = () => {
   const [transcription, setTranscription] = useState('');
+  const [apiKey, setApiKey] = useState('');
 
   const handleTranscription = (text: string) => {
     setTranscription(text);
@@ -35,15 +38,38 @@ const Index = () => {
               </motion.div>
               
               <h1 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
-                Voice to <span className="text-primary">Sign Language</span> Translation
+                Voice to <span className="text-primary">Sign Language</span> Video
               </h1>
               
               <p className="text-xl text-muted-foreground">
                 Speak into your microphone and watch as your words are transformed 
-                into sign language gestures in real-time.
+                into sign language videos using fal.ai technology.
               </p>
             </motion.div>
           </section>
+          
+          <motion.section 
+            className="mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <div className="max-w-md mx-auto mb-8">
+              <div className="flex items-center p-4 bg-muted rounded-lg">
+                <Key className="mr-2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="password"
+                  placeholder="Enter your fal.ai API Key"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Your API key is stored only in your browser and is never sent to our servers
+              </p>
+            </div>
+          </motion.section>
           
           <motion.section 
             className="mb-16 space-y-8"
@@ -52,7 +78,7 @@ const Index = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <VoiceInput onTranscription={handleTranscription} />
-            <SignDisplay text={transcription} />
+            <FalVideoDisplay text={transcription} apiKey={apiKey} />
           </motion.section>
           
           <motion.section 
@@ -88,12 +114,12 @@ const Index = () => {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ repeat: Infinity, duration: 2, delay: 0.3 }}
                     >
-                      🤲
+                      🎬
                     </motion.span>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Sign Translation</h3>
+                  <h3 className="text-lg font-medium mb-2">Video Generation</h3>
                   <p className="text-muted-foreground text-sm">
-                    Real-time translation of spoken words to sign language
+                    AI-powered conversion of text to sign language videos
                   </p>
                 </div>
                 
