@@ -7,19 +7,18 @@ import { Button } from './ui/button';
 
 interface FalVideoDisplayProps {
   text: string;
-  apiKey: string;
 }
 
-const FalVideoDisplay = ({ text, apiKey }: FalVideoDisplayProps) => {
+const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (text && apiKey) {
+    if (text) {
       generateVideo();
     }
-  }, [text, apiKey]);
+  }, [text]);
 
   const generateVideo = async () => {
     setIsGenerating(true);
@@ -27,7 +26,6 @@ const FalVideoDisplay = ({ text, apiKey }: FalVideoDisplayProps) => {
     
     try {
       const url = await generateSignLanguageVideo({
-        apiKey,
         prompt: text,
       });
       

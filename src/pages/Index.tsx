@@ -5,12 +5,9 @@ import Header from '../components/Header';
 import VoiceInput from '../components/VoiceInput';
 import Footer from '../components/Footer';
 import FalVideoDisplay from '../components/FalVideoDisplay';
-import { Input } from '../components/ui/input';
-import { Key } from 'lucide-react';
 
 const Index = () => {
   const [transcription, setTranscription] = useState('');
-  const [apiKey, setApiKey] = useState('');
 
   const handleTranscription = (text: string) => {
     setTranscription(text);
@@ -49,36 +46,13 @@ const Index = () => {
           </section>
           
           <motion.section 
-            className="mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <div className="max-w-md mx-auto mb-8">
-              <div className="flex items-center p-4 bg-muted rounded-lg">
-                <Key className="mr-2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="password"
-                  placeholder="Enter your fal.ai API Key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Your API key is stored only in your browser and is never sent to our servers
-              </p>
-            </div>
-          </motion.section>
-          
-          <motion.section 
             className="mb-16 space-y-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <VoiceInput onTranscription={handleTranscription} />
-            <FalVideoDisplay text={transcription} apiKey={apiKey} />
+            <FalVideoDisplay text={transcription} />
           </motion.section>
           
           <motion.section 

@@ -1,27 +1,19 @@
 
 import { toast } from "@/hooks/use-toast";
 
+const FAL_AI_API_KEY = "your-fal-ai-api-key-here"; // Replace with your actual fal.ai API key
+
 interface FalAiOptions {
-  apiKey: string;
   prompt: string;
 }
 
-export const generateSignLanguageVideo = async ({ apiKey, prompt }: FalAiOptions) => {
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please provide your fal.ai API key",
-      variant: "destructive",
-    });
-    return null;
-  }
-
+export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
   try {
     const response = await fetch("https://api.fal.ai/v2/video", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Key ${apiKey}`,
+        "Authorization": `Key ${FAL_AI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "fal.ai/veo2",
