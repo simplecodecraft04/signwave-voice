@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import VoiceInput from '../components/VoiceInput';
 import Footer from '../components/Footer';
 import FalVideoDisplay from '../components/FalVideoDisplay';
+import ApiKeySettings from '../components/ApiKeySettings';
 
 const Index = () => {
   const [transcription, setTranscription] = useState('');
@@ -118,6 +119,7 @@ const Index = () => {
         </div>
       </main>
       
+      <ApiKeySettings />
       <Footer />
     </div>
   );
