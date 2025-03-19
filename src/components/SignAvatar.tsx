@@ -4,12 +4,10 @@ import { motion } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { hamburgToAnimationParams } from '../utils/hamburgNotation';
 
 interface SignAvatarProps {
   word: string;
   isActive: boolean;
-  hamburgGesture?: string;
 }
 
 // Dictionary mapping words to sign animation parameters
@@ -96,6 +94,7 @@ export const signAnimations: Record<string, any> = {
       }
     }
   },
+  // Default animation for words without specific animations
   default: {
     rightArm: {
       initial: { rotation: [0, 0, 0] },
@@ -114,14 +113,17 @@ const interpolate = (progress: number, timings: number[], values: number[]) => {
   if (progress <= timings[0]) return values[0];
   if (progress >= timings[timings.length - 1]) return values[values.length - 1];
   
+  // Find the appropriate segment
   for (let i = 0; i < timings.length - 1; i++) {
     if (progress >= timings[i] && progress <= timings[i + 1]) {
+      // Calculate the normalized position within this segment
       const segmentProgress = (progress - timings[i]) / (timings[i + 1] - timings[i]);
+      // Linear interpolation between the two values
       return values[i] + segmentProgress * (values[i + 1] - values[i]);
     }
   }
   
-  return values[0];
+  return values[0]; // Fallback
 };
 
 // Realistic 3D Avatar Model with animated parts
@@ -130,9 +132,8 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
   const bodyRef = useRef<THREE.Group>(null);
   const rightArmRef = useRef<THREE.Group>(null);
   const leftArmRef = useRef<THREE.Group>(null);
-  const rightHandRef = useRef<THREE.Group>(null);
-  const leftHandRef = useRef<THREE.Group>(null);
   
+  // Track animation progress
   const [animationProgress, setAnimationProgress] = useState(0);
   const animationActive = useRef(false);
   const startTime = useRef(0);
@@ -144,6 +145,7 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
     }
   }, [isActive]);
   
+  // Animation loop
   useFrame(() => {
     if (!animationActive.current) return;
     
@@ -151,204 +153,149 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
     const headAnimation = animation.head?.animate;
     const rightArmAnimation = animation.rightArm?.animate;
     const leftArmAnimation = animation.leftArm?.animate;
-    const rightHandAnimation = animation.rightHand?.animate;
-    const leftHandAnimation = animation.leftHand?.animate;
     
+    // Get duration from longest animation
     const maxDuration = Math.max(
       headAnimation?.duration || 0,
       rightArmAnimation?.duration || 0,
-      leftArmAnimation?.duration || 0,
-      rightHandAnimation?.duration || 0,
-      leftHandAnimation?.duration || 0
+      leftArmAnimation?.duration || 0
     );
     
+    // Calculate progress (0 to 1)
     const progress = Math.min(elapsedTime / maxDuration, 1);
     setAnimationProgress(progress);
     
+    // Reset when complete
     if (progress >= 1) {
+      // Check if we should repeat
       const maxRepeats = Math.max(
         headAnimation?.repeat || 0,
         rightArmAnimation?.repeat || 0,
-        leftArmAnimation?.repeat || 0,
-        rightHandAnimation?.repeat || 0,
-        leftHandAnimation?.repeat || 0
+        leftArmAnimation?.repeat || 0
       );
       
       if (maxRepeats > 0) {
         startTime.current = Date.now();
+        // Decrement repeat counter
         if (headAnimation) headAnimation.repeat = Math.max(0, headAnimation.repeat - 1);
         if (rightArmAnimation) rightArmAnimation.repeat = Math.max(0, rightArmAnimation.repeat - 1);
         if (leftArmAnimation) leftArmAnimation.repeat = Math.max(0, leftArmAnimation.repeat - 1);
-        if (rightHandAnimation) rightHandAnimation.repeat = Math.max(0, rightHandAnimation.repeat - 1);
-        if (leftHandAnimation) leftHandAnimation.repeat = Math.max(0, leftHandAnimation.repeat - 1);
       } else {
         animationActive.current = false;
       }
     }
     
+    // Animate head if available
     if (headRef.current && headAnimation) {
-      const rotationX = interpolate(progress, headAnimation.timing, headAnimation.rotation.map((r: number[]) => r[0]));
-      const rotationY = interpolate(progress, headAnimation.timing, headAnimation.rotation.map((r: number[]) => r[1]));
-      const rotationZ = interpolate(progress, headAnimation.timing, headAnimation.rotation.map((r: number[]) => r[2]));
+      const rotationX = interpolate(progress, headAnimation.timing, headAnimation.rotation.map(r => r[0]));
+      const rotationY = interpolate(progress, headAnimation.timing, headAnimation.rotation.map(r => r[1]));
+      const rotationZ = interpolate(progress, headAnimation.timing, headAnimation.rotation.map(r => r[2]));
       
       headRef.current.rotation.set(rotationX, rotationY, rotationZ);
     }
     
+    // Animate right arm if available
     if (rightArmRef.current && rightArmAnimation) {
-      const rotationX = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map((r: number[]) => r[0]));
-      const rotationY = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map((r: number[]) => r[1]));
-      const rotationZ = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map((r: number[]) => r[2]));
+      const rotationX = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map(r => r[0]));
+      const rotationY = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map(r => r[1]));
+      const rotationZ = interpolate(progress, rightArmAnimation.timing, rightArmAnimation.rotation.map(r => r[2]));
       
       rightArmRef.current.rotation.set(rotationX, rotationY, rotationZ);
     }
     
+    // Animate left arm if available
     if (leftArmRef.current && leftArmAnimation) {
-      const rotationX = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map((r: number[]) => r[0]));
-      const rotationY = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map((r: number[]) => r[1]));
-      const rotationZ = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map((r: number[]) => r[2]));
+      const rotationX = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map(r => r[0]));
+      const rotationY = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map(r => r[1]));
+      const rotationZ = interpolate(progress, leftArmAnimation.timing, leftArmAnimation.rotation.map(r => r[2]));
       
       leftArmRef.current.rotation.set(rotationX, rotationY, rotationZ);
     }
-    
-    if (rightHandRef.current && rightHandAnimation) {
-      const rotationX = interpolate(progress, rightHandAnimation.timing, rightHandAnimation.rotation.map((r: number[]) => r[0]));
-      const rotationY = interpolate(progress, rightHandAnimation.timing, rightHandAnimation.rotation.map((r: number[]) => r[1]));
-      const rotationZ = interpolate(progress, rightHandAnimation.timing, rightHandAnimation.rotation.map((r: number[]) => r[2]));
-      
-      rightHandRef.current.rotation.set(rotationX, rotationY, rotationZ);
-    }
-    
-    if (leftHandRef.current && leftHandAnimation) {
-      const rotationX = interpolate(progress, leftHandAnimation.timing, leftHandAnimation.rotation.map((r: number[]) => r[0]));
-      const rotationY = interpolate(progress, leftHandAnimation.timing, leftHandAnimation.rotation.map((r: number[]) => r[1]));
-      const rotationZ = interpolate(progress, leftHandAnimation.timing, leftHandAnimation.rotation.map((r: number[]) => r[2]));
-      
-      leftHandRef.current.rotation.set(rotationX, rotationY, rotationZ);
-    }
   });
   
-  // Materials for realistic avatar
+  // Create materials with better textures and colors
   const skinMaterial = new THREE.MeshStandardMaterial({ 
-    color: "#F4D3B8", // Warmer skin tone 
-    roughness: 0.5,
-    metalness: 0.1
-  });
-  
-  const hairMaterial = new THREE.MeshStandardMaterial({ 
-    color: "#1A1A1A", // Darker black hair
+    color: "#FDE1D3", 
     roughness: 0.7,
     metalness: 0.1
   });
   
-  const jacketMaterial = new THREE.MeshStandardMaterial({ 
-    color: "#F99820", // Orange/yellow jacket color
-    roughness: 0.4,
-    metalness: 0.2
-  });
-  
-  const shirtMaterial = new THREE.MeshStandardMaterial({ 
-    color: "#F5F5F5", // White/cream shirt
-    roughness: 0.5,
+  const hairMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#403E43", 
+    roughness: 0.8,
     metalness: 0.1
   });
   
+  const shirtMaterial = new THREE.MeshStandardMaterial({ 
+    color: "#3b82f6", 
+    roughness: 0.5,
+    metalness: 0.2
+  });
+  
   const pantsMaterial = new THREE.MeshStandardMaterial({ 
-    color: "#2C3E50", // Dark blue/navy pants
+    color: "#1e3a8a", 
     roughness: 0.6,
     metalness: 0.1
   });
   
   return (
     <group position={[0, -1, 0]}>
-      {/* Head & Face */}
+      {/* Head with more detailed features */}
       <group ref={headRef} position={[0, 2.7, 0]}>
-        {/* Head Base */}
+        {/* Base head */}
         <mesh castShadow receiveShadow>
           <sphereGeometry args={[0.5, 32, 32]} />
           <primitive object={skinMaterial} />
         </mesh>
         
-        {/* Jaw */}
-        <mesh castShadow position={[0, -0.15, 0]} scale={[0.9, 0.6, 0.8]}>
-          <sphereGeometry args={[0.4, 32, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
-          <primitive object={skinMaterial} />
+        {/* Hair */}
+        <mesh castShadow position={[0, 0.2, 0]} scale={[1.1, 0.35, 1.1]}>
+          <sphereGeometry args={[0.45, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          <primitive object={hairMaterial} />
         </mesh>
         
-        {/* Hair */}
-        <group position={[0, 0.1, 0]}>
-          {/* Top Hair */}
-          <mesh castShadow position={[0, 0.2, 0]} scale={[1.1, 0.35, 1.1]}>
-            <sphereGeometry args={[0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <primitive object={hairMaterial} />
-          </mesh>
-          
-          {/* Side Hair */}
-          <mesh castShadow position={[0.4, 0, 0]} scale={[0.2, 0.5, 0.8]}>
-            <sphereGeometry args={[0.5, 32, 32]} />
-            <primitive object={hairMaterial} />
-          </mesh>
-          
-          <mesh castShadow position={[-0.4, 0, 0]} scale={[0.2, 0.5, 0.8]}>
-            <sphereGeometry args={[0.5, 32, 32]} />
-            <primitive object={hairMaterial} />
-          </mesh>
-          
-          {/* Front Hair (styled quiff) */}
-          <mesh castShadow position={[0, 0.3, 0.3]} rotation={[Math.PI * 0.15, 0, 0]} scale={[0.8, 0.3, 0.4]}>
-            <boxGeometry args={[0.6, 0.4, 0.4]} />
-            <primitive object={hairMaterial} />
-          </mesh>
-        </group>
-        
-        {/* Eyes */}
+        {/* Eyes with more detail */}
         <group position={[0.15, 0.1, 0.4]}>
+          {/* Eye white */}
           <mesh>
-            <sphereGeometry args={[0.09, 16, 16]} />
+            <sphereGeometry args={[0.1, 16, 16]} />
             <meshStandardMaterial color="white" />
           </mesh>
           
+          {/* Iris and pupil */}
           <mesh position={[0, 0, 0.05]}>
-            <sphereGeometry args={[0.055, 16, 16]} />
-            <meshStandardMaterial color="#593C32" /> {/* Brown eyes */}
+            <sphereGeometry args={[0.06, 16, 16]} />
+            <meshStandardMaterial color="#5B9BD5" />
           </mesh>
           
-          <mesh position={[0, 0, 0.06]}>
-            <sphereGeometry args={[0.025, 16, 16]} />
+          <mesh position={[0, 0, 0.08]}>
+            <sphereGeometry args={[0.03, 16, 16]} />
             <meshStandardMaterial color="black" />
           </mesh>
         </group>
         
         <group position={[-0.15, 0.1, 0.4]}>
+          {/* Eye white */}
           <mesh>
-            <sphereGeometry args={[0.09, 16, 16]} />
+            <sphereGeometry args={[0.1, 16, 16]} />
             <meshStandardMaterial color="white" />
           </mesh>
           
+          {/* Iris and pupil */}
           <mesh position={[0, 0, 0.05]}>
-            <sphereGeometry args={[0.055, 16, 16]} />
-            <meshStandardMaterial color="#593C32" /> {/* Brown eyes */}
+            <sphereGeometry args={[0.06, 16, 16]} />
+            <meshStandardMaterial color="#5B9BD5" />
           </mesh>
           
-          <mesh position={[0, 0, 0.06]}>
-            <sphereGeometry args={[0.025, 16, 16]} />
+          <mesh position={[0, 0, 0.08]}>
+            <sphereGeometry args={[0.03, 16, 16]} />
             <meshStandardMaterial color="black" />
           </mesh>
         </group>
         
-        {/* Eyebrows */}
-        <mesh position={[0.15, 0.22, 0.41]} rotation={[0.1, 0, -0.1]} scale={[0.15, 0.02, 0.02]}>
-          <boxGeometry args={[1, 1, 1]} />
-          <primitive object={hairMaterial} />
-        </mesh>
-        
-        <mesh position={[-0.15, 0.22, 0.41]} rotation={[0.1, 0, 0.1]} scale={[0.15, 0.02, 0.02]}>
-          <boxGeometry args={[1, 1, 1]} />
-          <primitive object={hairMaterial} />
-        </mesh>
-        
-        {/* Mouth */}
-        <mesh position={[0, -0.15, 0.4]} rotation={[0.2, 0, 0]}>
-          <boxGeometry args={[0.2, 0.04, 0.05]} />
+        {/* Mouth with more detail */}
+        <mesh position={[0, -0.15, 0.4]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.2, 0.05, 0.05]} />
           <meshStandardMaterial color="#c1665a" />
         </mesh>
         
@@ -376,61 +323,44 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
         <primitive object={skinMaterial} />
       </mesh>
       
-      {/* Body / Torso */}
+      {/* Body with better proportions */}
       <group ref={bodyRef} position={[0, 1.5, 0]}>
-        {/* Upper Body / Chest */}
+        {/* Torso */}
         <mesh castShadow receiveShadow>
           <boxGeometry args={[0.9, 1.2, 0.5]} />
-          <primitive object={jacketMaterial} />
-        </mesh>
-        
-        {/* Jacket Collar */}
-        <mesh position={[0, 0.5, 0.26]} rotation={[Math.PI / 6, 0, 0]}>
-          <boxGeometry args={[0.8, 0.15, 0.1]} />
-          <meshStandardMaterial color="#DA8717" /> {/* Darker orange for collar */}
-        </mesh>
-        
-        {/* Jacket Zipper/Buttons */}
-        <mesh position={[0, 0.3, 0.28]} rotation={[Math.PI / 8, 0, 0]}>
-          <boxGeometry args={[0.1, 0.5, 0.05]} />
-          <meshStandardMaterial color="#C47615" /> {/* Darker orange for zipper */}
-        </mesh>
-        
-        {/* Shirt beneath jacket */}
-        <mesh position={[0, 0.2, 0.28]} scale={[0.5, 0.5, 0.1]}>
-          <boxGeometry args={[1, 1, 1]} />
           <primitive object={shirtMaterial} />
+        </mesh>
+        
+        {/* Collar */}
+        <mesh position={[0, 0.6, 0.25]} rotation={[Math.PI / 4, 0, 0]}>
+          <boxGeometry args={[0.6, 0.1, 0.1]} />
+          <meshStandardMaterial color="#285fc4" />
         </mesh>
       </group>
       
-      {/* Right Arm */}
+      {/* Right Arm with joints */}
       <group ref={rightArmRef} position={[0.6, 2, 0]}>
-        {/* Upper Arm - Jacket */}
+        {/* Upper arm */}
         <mesh castShadow position={[0, -0.25, 0]}>
-          <capsuleGeometry args={[0.14, 0.5, 8, 8]} />
-          <primitive object={jacketMaterial} />
+          <capsuleGeometry args={[0.12, 0.5, 8, 8]} />
+          <primitive object={shirtMaterial} />
         </mesh>
         
-        {/* Elbow */}
+        {/* Elbow joint */}
         <mesh position={[0, -0.5, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <primitive object={jacketMaterial} />
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <primitive object={shirtMaterial} />
         </mesh>
         
-        {/* Lower Arm - Jacket */}
+        {/* Lower arm */}
         <mesh castShadow position={[0, -0.8, 0]}>
-          <capsuleGeometry args={[0.13, 0.5, 8, 8]} />
-          <primitive object={jacketMaterial} />
+          <capsuleGeometry args={[0.1, 0.5, 8, 8]} />
+          <primitive object={skinMaterial} />
         </mesh>
         
-        {/* Jacket Cuff */}
-        <mesh position={[0, -1.05, 0]} rotation={[0, 0, 0]}>
-          <cylinderGeometry args={[0.15, 0.14, 0.1, 16]} />
-          <meshStandardMaterial color="#DA8717" /> {/* Darker orange for cuff */}
-        </mesh>
-        
-        {/* Hand */}
-        <group ref={rightHandRef} position={[0, -1.2, 0]}>
+        {/* Right Hand with more detail */}
+        <group position={[0, -1.1, 0]}>
+          {/* Palm */}
           <mesh castShadow>
             <boxGeometry args={[0.15, 0.25, 0.08]} />
             <primitive object={skinMaterial} />
@@ -452,34 +382,29 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
         </group>
       </group>
       
-      {/* Left Arm */}
+      {/* Left Arm with joints */}
       <group ref={leftArmRef} position={[-0.6, 2, 0]}>
-        {/* Upper Arm - Jacket */}
+        {/* Upper arm */}
         <mesh castShadow position={[0, -0.25, 0]}>
-          <capsuleGeometry args={[0.14, 0.5, 8, 8]} />
-          <primitive object={jacketMaterial} />
+          <capsuleGeometry args={[0.12, 0.5, 8, 8]} />
+          <primitive object={shirtMaterial} />
         </mesh>
         
-        {/* Elbow */}
+        {/* Elbow joint */}
         <mesh position={[0, -0.5, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <primitive object={jacketMaterial} />
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <primitive object={shirtMaterial} />
         </mesh>
         
-        {/* Lower Arm - Jacket */}
+        {/* Lower arm */}
         <mesh castShadow position={[0, -0.8, 0]}>
-          <capsuleGeometry args={[0.13, 0.5, 8, 8]} />
-          <primitive object={jacketMaterial} />
+          <capsuleGeometry args={[0.1, 0.5, 8, 8]} />
+          <primitive object={skinMaterial} />
         </mesh>
         
-        {/* Jacket Cuff */}
-        <mesh position={[0, -1.05, 0]} rotation={[0, 0, 0]}>
-          <cylinderGeometry args={[0.15, 0.14, 0.1, 16]} />
-          <meshStandardMaterial color="#DA8717" /> {/* Darker orange for cuff */}
-        </mesh>
-        
-        {/* Hand */}
-        <group ref={leftHandRef} position={[0, -1.2, 0]}>
+        {/* Left Hand with more detail */}
+        <group position={[0, -1.1, 0]}>
+          {/* Palm */}
           <mesh castShadow>
             <boxGeometry args={[0.15, 0.25, 0.08]} />
             <primitive object={skinMaterial} />
@@ -501,62 +426,58 @@ export const AvatarModel = ({ animation, isActive }: { animation: any, isActive:
         </group>
       </group>
       
-      {/* Legs */}
+      {/* Legs with better proportions */}
       <group position={[0.25, 0.4, 0]}>
-        {/* Upper Leg */}
+        {/* Upper leg */}
         <mesh castShadow position={[0, -0.3, 0]}>
-          <capsuleGeometry args={[0.17, 0.6, 8, 8]} />
+          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
           <primitive object={pantsMaterial} />
         </mesh>
         
-        {/* Lower Leg */}
+        {/* Lower leg */}
         <mesh castShadow position={[0, -0.9, 0]}>
-          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
+          <capsuleGeometry args={[0.12, 0.6, 8, 8]} />
           <primitive object={pantsMaterial} />
         </mesh>
         
         {/* Shoe */}
         <mesh castShadow position={[0, -1.3, 0.1]}>
           <boxGeometry args={[0.2, 0.15, 0.4]} />
-          <meshStandardMaterial color="#333333" />
+          <meshStandardMaterial color="#403E43" />
         </mesh>
       </group>
       
       <group position={[-0.25, 0.4, 0]}>
-        {/* Upper Leg */}
+        {/* Upper leg */}
         <mesh castShadow position={[0, -0.3, 0]}>
-          <capsuleGeometry args={[0.17, 0.6, 8, 8]} />
+          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
           <primitive object={pantsMaterial} />
         </mesh>
         
-        {/* Lower Leg */}
+        {/* Lower leg */}
         <mesh castShadow position={[0, -0.9, 0]}>
-          <capsuleGeometry args={[0.15, 0.6, 8, 8]} />
+          <capsuleGeometry args={[0.12, 0.6, 8, 8]} />
           <primitive object={pantsMaterial} />
         </mesh>
         
         {/* Shoe */}
         <mesh castShadow position={[0, -1.3, 0.1]}>
           <boxGeometry args={[0.2, 0.15, 0.4]} />
-          <meshStandardMaterial color="#333333" />
+          <meshStandardMaterial color="#403E43" />
         </mesh>
       </group>
     </group>
   );
 };
 
-const SignAvatar = ({ word, isActive, hamburgGesture }: SignAvatarProps) => {
+const SignAvatar = ({ word, isActive }: SignAvatarProps) => {
   const [animation, setAnimation] = useState(signAnimations.default);
   
   useEffect(() => {
-    if (hamburgGesture) {
-      const hamburgAnimation = hamburgToAnimationParams(hamburgGesture);
-      setAnimation(hamburgAnimation);
-    } else {
-      const wordAnimation = signAnimations[word.toLowerCase()] || signAnimations.default;
-      setAnimation(wordAnimation);
-    }
-  }, [word, hamburgGesture]);
+    // Look up the animation for this word, or use default if not found
+    const wordAnimation = signAnimations[word.toLowerCase()] || signAnimations.default;
+    setAnimation(wordAnimation);
+  }, [word]);
 
   if (!isActive) return null;
 
@@ -593,11 +514,6 @@ const SignAvatar = ({ word, isActive, hamburgGesture }: SignAvatarProps) => {
         </Canvas>
       </div>
       <div className="mt-4 text-xl font-medium text-primary">{word}</div>
-      {hamburgGesture && (
-        <div className="mt-1 text-xs text-muted-foreground max-w-xs truncate">
-          {hamburgGesture}
-        </div>
-      )}
     </div>
   );
 };

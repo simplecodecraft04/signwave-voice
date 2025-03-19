@@ -5,16 +5,13 @@ import SignAvatar from './SignAvatar';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { AvatarModel, signAnimations } from './SignAvatar';
-import { parseHamburgNotation, hamburgToAnimationParams } from '../utils/hamburgNotation';
 
 interface SignDisplayProps {
   text: string;
-  hamburgNotation?: string;
 }
 
-const SignDisplay = ({ text, hamburgNotation = '' }: SignDisplayProps) => {
+const SignDisplay = ({ text }: SignDisplayProps) => {
   const [words, setWords] = useState<string[]>([]);
-  const [hamburgGestures, setHamburgGestures] = useState<string[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(-1);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
@@ -23,22 +20,13 @@ const SignDisplay = ({ text, hamburgNotation = '' }: SignDisplayProps) => {
       const cleanedText = text.toLowerCase().replace(/[^\w\s]/gi, '');
       const wordsArray = cleanedText.split(' ');
       setWords(wordsArray);
-      
-      // Parse Hamburg notation if available
-      if (hamburgNotation) {
-        const gestures = parseHamburgNotation(hamburgNotation);
-        setHamburgGestures(gestures);
-      } else {
-        setHamburgGestures([]);
-      }
-      
       setCurrentWordIndex(-1);
       setIsAnimating(true);
       
       // Start the animation sequence
       animateWords(wordsArray);
     }
-  }, [text, hamburgNotation]);
+  }, [text]);
 
   const animateWords = (wordsArray: string[]) => {
     setCurrentWordIndex(-1);
@@ -63,11 +51,6 @@ const SignDisplay = ({ text, hamburgNotation = '' }: SignDisplayProps) => {
             <div className="text-center">
               <h3 className="text-xl font-medium text-foreground/70 mb-1">3D Sign Language Display</h3>
               <p className="text-sm text-muted-foreground">Visualizing: {text}</p>
-              {hamburgNotation && (
-                <p className="text-xs text-primary/70 mt-1 max-w-sm mx-auto truncate">
-                  Using Hamburg Notation
-                </p>
-              )}
             </div>
             
             <div className="flex flex-col items-center justify-center min-h-[300px]">
@@ -82,9 +65,7 @@ const SignDisplay = ({ text, hamburgNotation = '' }: SignDisplayProps) => {
                   >
                     <SignAvatar 
                       word={currentWordIndex >= 0 ? words[currentWordIndex] : "hello"} 
-                      isActive={currentWordIndex >= 0}
-                      hamburgGesture={currentWordIndex >= 0 && hamburgGestures.length > currentWordIndex ? 
-                        hamburgGestures[currentWordIndex] : undefined}
+                      isActive={currentWordIndex >= 0} 
                     />
                   </motion.div>
                 )}

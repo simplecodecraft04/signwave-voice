@@ -2,123 +2,190 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { textToHamburgNotation } from '../utils/hamburgNotation';
+import { pipeline } from '@huggingface/transformers';
 
 interface VoiceInputProps {
-  onTranscription: (text: string, hamburgNotation: string) => void;
+  onTranscription: (text: string) => void;
 }
 
 const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
-  const [hamburgNotation, setHamburgNotation] = useState('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [isModelLoading, setIsModelLoading] = useState(false);
+  const [isModelReady, setIsModelReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const huggingfaceModelRef = useRef<any>(null);
+  
+  // Initialize Hugging Face model
   useEffect(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      console.error('Speech recognition is not supported in this browser.');
-      return;
-    }
-    
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognitionAPI();
-    
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'en-US';
-    
-    recognitionRef.current.onresult = (event) => {
-      const current = event.resultIndex;
-      const result = event.results[current];
-      const transcriptResult = result[0].transcript;
-      
-      setTranscript(transcriptResult);
-      
-      // Convert to Hamburg Notation
-      const hamburg = textToHamburgNotation(transcriptResult);
-      setHamburgNotation(hamburg);
-      
-      setIsAnimating(true);
-    };
-    
-    recognitionRef.current.onend = () => {
-      if (isListening) {
-        recognitionRef.current?.start();
+    const loadModel = async () => {
+      try {
+        setIsModelLoading(true);
+        setError(null);
+        
+        // Load the speech recognition model
+        const speechRecognizer = await pipeline(
+          "automatic-speech-recognition", 
+          "harislania/urdu-speech-to-text"
+        );
+        
+        huggingfaceModelRef.current = speechRecognizer;
+        setIsModelReady(true);
+        console.log("Hugging Face model loaded successfully");
+      } catch (err) {
+        console.error("Error loading Hugging Face model:", err);
+        setError("Failed to load speech recognition model. Falling back to browser API.");
+        // We'll still initialize the browser's SpeechRecognition as fallback
+      } finally {
+        setIsModelLoading(false);
       }
     };
+    
+    loadModel();
+    
+    // Initialize browser's SpeechRecognition as fallback
+    if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognitionAPI();
+      
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+      
+      recognitionRef.current.onresult = (event) => {
+        const current = event.resultIndex;
+        const result = event.results[current];
+        const transcriptResult = result[0].transcript;
+        
+        setTranscript(transcriptResult);
+        setIsAnimating(true);
+      };
+      
+      recognitionRef.current.onend = () => {
+        if (isListening) {
+          recognitionRef.current?.start();
+        }
+      };
+    }
     
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
     };
   }, [isListening]);
   
+  const startRecordingForHuggingFace = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorderRef.current.onstop = async () => {
+        if (audioChunksRef.current.length > 0 && huggingfaceModelRef.current) {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+          try {
+            // Process the audio using the Hugging Face model
+            const result = await huggingfaceModelRef.current(audioBlob);
+            console.log("Hugging Face transcription result:", result);
+            
+            if (result && result.text) {
+              setTranscript(result.text);
+              setIsAnimating(true);
+            }
+          } catch (err) {
+            console.error("Error during Hugging Face transcription:", err);
+            setError("Error processing speech. Please try again.");
+          }
+        }
+      };
+      
+      mediaRecorderRef.current.start();
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      setError("Could not access microphone. Please check permissions.");
+    }
+  };
+  
   const toggleListening = () => {
     if (isListening) {
-      if (recognitionRef.current) {
+      // Stop listening
+      if (isModelReady && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      } else if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
       setIsListening(false);
     } else {
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-      }
-      setIsListening(true);
+      // Start listening
       setTranscript('');
-      setHamburgNotation('');
+      setError(null);
+      
+      if (isModelReady) {
+        startRecordingForHuggingFace();
+      } else if (recognitionRef.current) {
+        recognitionRef.current.start();
+      } else {
+        setError("Speech recognition is not available in this browser.");
+        return;
+      }
+      
+      setIsListening(true);
     }
   };
   
   const handleSubmit = () => {
     if (transcript.trim()) {
-      onTranscription(transcript, hamburgNotation);
+      onTranscription(transcript);
       setTranscript('');
-      setHamburgNotation('');
     }
   };
   
   const resetTranscript = () => {
     setTranscript('');
-    setHamburgNotation('');
   };
   
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="glass-card p-6 rounded-2xl">
         <div className="flex flex-col items-center space-y-6">
+          {isModelLoading && (
+            <div className="text-center text-amber-500 mb-2">
+              Loading speech recognition model...
+            </div>
+          )}
+          
+          {error && (
+            <div className="text-center text-red-500 mb-2">
+              {error}
+            </div>
+          )}
+          
           <div className="w-full">
-            <div className="relative w-full min-h-32 bg-secondary/50 rounded-xl p-4 overflow-hidden">
+            <div className="relative w-full h-32 bg-secondary/50 rounded-xl p-4 overflow-hidden">
               <AnimatePresence>
                 {transcript ? (
-                  <motion.div
-                    key="transcript-content"
+                  <motion.p
+                    key="transcript"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="space-y-3"
+                    className="text-foreground/90 text-lg font-medium"
                   >
-                    <motion.p
-                      key="transcript"
-                      className="text-foreground/90 text-lg font-medium"
-                    >
-                      {transcript}
-                    </motion.p>
-                    
-                    {hamburgNotation && (
-                      <motion.div
-                        key="hamburg"
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-muted-foreground text-sm font-medium bg-secondary/30 p-2 rounded-md"
-                      >
-                        <div className="text-xs text-primary/70 mb-1">Hamburg Notation:</div>
-                        {hamburgNotation}
-                      </motion.div>
-                    )}
-                  </motion.div>
+                    {transcript}
+                  </motion.p>
                 ) : (
                   <motion.p
                     key="placeholder"
@@ -164,8 +231,9 @@ const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
                 isListening
                   ? "bg-destructive text-white"
                   : "bg-primary text-white"
-              } shadow-md`}
+              } shadow-md ${isModelLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={toggleListening}
+              disabled={isModelLoading}
             >
               {isListening ? (
                 <MicOff size={24} className="animate-pulse" />
@@ -195,6 +263,12 @@ const VoiceInput = ({ onTranscription }: VoiceInputProps) => {
                 </motion.button>
               </>
             )}
+          </div>
+          
+          <div className="text-center text-sm text-muted-foreground">
+            {isModelReady ? 
+              "Using Urdu Speech-to-Text model from Hugging Face" : 
+              "Using browser's speech recognition API"}
           </div>
         </div>
       </div>
