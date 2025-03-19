@@ -21,13 +21,18 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
   }, [text]);
 
   const generateVideo = async () => {
+    if (!text.trim()) return;
+    
     setIsGenerating(true);
     setError(null);
     
     try {
+      console.log("Requesting video generation for:", text);
       const url = await generateSignLanguageVideo({
         prompt: text,
       });
+      
+      console.log("Video generation result:", url);
       
       if (url) {
         setVideoUrl(url);
@@ -35,6 +40,7 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
         setError("Failed to generate video");
       }
     } catch (err) {
+      console.error("Video generation error:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
       setIsGenerating(false);
@@ -63,6 +69,7 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
                   >
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                     <p className="text-muted-foreground">Generating sign language video...</p>
+                    <p className="text-xs text-muted-foreground mt-2">This may take a minute</p>
                   </motion.div>
                 ) : videoUrl ? (
                   <motion.div

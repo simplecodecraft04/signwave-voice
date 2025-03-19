@@ -1,7 +1,11 @@
 
+import { fal } from "@fal-ai/client";
 import { toast } from "@/hooks/use-toast";
 
-const FAL_AI_API_KEY = "your-fal-ai-api-key-here"; // Replace with your actual fal.ai API key
+// Configure fal.ai client
+fal.config({
+  credentials: "a414c158-199a-43b0-8b10-3f19e1d49fb6:9b9421ea5deb305c",
+});
 
 interface FalAiOptions {
   prompt: string;
@@ -9,26 +13,39 @@ interface FalAiOptions {
 
 export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
   try {
-    const response = await fetch("https://api.fal.ai/v2/video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Key ${FAL_AI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "fal.ai/veo2",
+    console.log("Generating sign language video for prompt:", prompt);
+    
+    const result = await fal.subscribe("fal-ai/veo2", {
+      input: {
         prompt: `A person making the sign language gesture for: "${prompt}"`,
-        output_format: "mp4",
-      }),
+      },
+      pollInterval: 1000, // poll every 1s
+      onQueueUpdate: (update) => {
+        console.log("Queue update:", update);
+      },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to generate video");
+    console.log("Fal.ai result:", result);
+    
+    // Extract video URL from response
+    // The structure might be in result.video_url, result.url, or result.output.video_url
+    let videoUrl = null;
+    if (result) {
+      if ('video_url' in result) {
+        videoUrl = (result as any).video_url;
+      } else if ('url' in result) {
+        videoUrl = (result as any).url;
+      } else if ('output' in result && 'video_url' in (result as any).output) {
+        videoUrl = (result as any).output.video_url;
+      }
     }
 
-    const data = await response.json();
-    return data.video_url;
+    if (!videoUrl) {
+      console.error("No video URL found in response:", result);
+      throw new Error("Failed to extract video URL from response");
+    }
+
+    return videoUrl;
   } catch (error) {
     console.error("Error generating sign language video:", error);
     toast({
