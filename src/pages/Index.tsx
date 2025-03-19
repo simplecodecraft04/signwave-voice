@@ -1,30 +1,16 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import VoiceInput from '../components/VoiceInput';
 import Footer from '../components/Footer';
 import FalVideoDisplay from '../components/FalVideoDisplay';
-import ApiKeySettings from '../components/ApiKeySettings';
 
 const Index = () => {
   const [transcription, setTranscription] = useState('');
-  const [apiKeySaved, setApiKeySaved] = useState(false);
-
-  useEffect(() => {
-    // Check if API key is already saved on component mount
-    const savedApiKey = localStorage.getItem('falAiApiKey');
-    if (savedApiKey) {
-      setApiKeySaved(true);
-    }
-  }, []);
 
   const handleTranscription = (text: string) => {
     setTranscription(text);
-  };
-
-  const handleApiKeySaved = (apiKey: string) => {
-    setApiKeySaved(true);
   };
 
   return (
@@ -58,15 +44,6 @@ const Index = () => {
               </p>
             </motion.div>
           </section>
-          
-          <motion.section 
-            className="mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <ApiKeySettings onApiKeySaved={handleApiKeySaved} />
-          </motion.section>
           
           <motion.section 
             className="mb-16 space-y-8"
