@@ -1,4 +1,5 @@
 
+import { fal } from "@fal-ai/client";
 import { toast } from "@/hooks/use-toast";
 
 const getApiKey = (): string => {
@@ -23,26 +24,21 @@ export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
   }
   
   try {
-    const response = await fetch("https://api.fal.ai/v2/video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Key ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "fal.ai/veo2",
+    // Configure fal client with the API key from localStorage
+    fal.config({
+      credentials: apiKey,
+    });
+    
+    // Use the fal.subscribe method to generate the video
+    const result = await fal.subscribe("fal-ai/veo2", {
+      input: {
         prompt: `A person making the sign language gesture for: "${prompt}"`,
         output_format: "mp4",
-      }),
+      },
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to generate video");
-    }
-
-    const data = await response.json();
-    return data.video_url;
+    
+    // Return the video URL from the result
+    return result.output?.video_url;
   } catch (error) {
     console.error("Error generating sign language video:", error);
     toast({
