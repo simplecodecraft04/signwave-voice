@@ -70,22 +70,67 @@ export const generateSignLanguageVideo = async ({ prompt, apiKey }: FalAiOptions
 
     console.log("Fal.ai result:", result);
     
-    // Extract video URL from response
+    // Extract video URL from response based on the actual structure
     let videoUrl = null;
-    if (result) {
-      if (typeof result === 'object') {
-        // Try different possible locations of the URL in the result object
-        if ('video_url' in result) {
-          videoUrl = (result as any).video_url;
-        } else if ('url' in result) {
-          videoUrl = (result as any).url;
-        } else if ('output' in result) {
-          const output = (result as any).output;
-          if (output && typeof output === 'object') {
-            if ('video_url' in output) {
-              videoUrl = output.video_url;
-            } else if ('url' in output) {
-              videoUrl = output.url;
+    
+    if (result && typeof result === 'object') {
+      // First check if there's a data.video object structure
+      if (result.data?.video?.url) {
+        videoUrl = result.data.video.url;
+      } 
+      // Then check for data.video direct URL
+      else if (result.data?.video) {
+        videoUrl = result.data.video;
+      }
+      // Then check for data.video_url
+      else if (result.data?.video_url) {
+        videoUrl = result.data.video_url;
+      }
+      // Check various possible nested structures
+      else if (result.output?.video?.url) {
+        videoUrl = result.output.video.url;
+      }
+      else if (result.output?.video) {
+        videoUrl = result.output.video;
+      }
+      else if (result.output?.video_url) {
+        videoUrl = result.output.video_url;
+      }
+      // Direct video_url at root level
+      else if (result.video_url) {
+        videoUrl = result.video_url;
+      }
+      // Direct url at root level
+      else if (result.url) {
+        videoUrl = result.url;
+      }
+      
+      // Try to look for video inside nested data structure
+      const data = result.data;
+      if (data && typeof data === 'object' && !videoUrl) {
+        // Log the full data structure to help debug
+        console.log("Inspecting data structure for video URL:", JSON.stringify(data, null, 2));
+        
+        // Look for any property that might contain a video URL
+        for (const key in data) {
+          const value = data[key];
+          if (typeof value === 'string' && 
+              (value.endsWith('.mp4') || 
+               value.includes('video') || 
+               value.includes('mp4'))) {
+            videoUrl = value;
+            break;
+          } else if (value && typeof value === 'object') {
+            // Check one level deeper
+            for (const nestedKey in value) {
+              const nestedValue = value[nestedKey];
+              if (typeof nestedValue === 'string' && 
+                  (nestedValue.endsWith('.mp4') || 
+                   nestedValue.includes('video') || 
+                   nestedValue.includes('mp4'))) {
+                videoUrl = nestedValue;
+                break;
+              }
             }
           }
         }
@@ -94,6 +139,12 @@ export const generateSignLanguageVideo = async ({ prompt, apiKey }: FalAiOptions
 
     if (!videoUrl) {
       console.error("No video URL found in response:", result);
+      
+      // Log the entire response structure to help debug
+      if (result && typeof result === 'object') {
+        console.log("Full response structure:", JSON.stringify(result, null, 2));
+      }
+      
       throw new Error("Failed to extract video URL from response");
     }
 
