@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateSignLanguageVideo } from '../services/falAiService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, KeyRound } from 'lucide-react';
 import { Button } from './ui/button';
+import ApiKeyForm, { getStoredApiKey } from './ApiKeyForm';
 
 interface FalVideoDisplayProps {
   text: string;
@@ -13,15 +14,34 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(getStoredApiKey());
+  const [showApiKeyForm, setShowApiKeyForm] = useState<boolean>(false);
 
+  // Check for API key on mount and when the text changes
   useEffect(() => {
-    if (text) {
+    const storedApiKey = getStoredApiKey();
+    setApiKey(storedApiKey);
+    
+    if (text && storedApiKey) {
       generateVideo();
     }
   }, [text]);
 
+  // When API key is updated, try generating video if text exists
+  useEffect(() => {
+    if (text && apiKey) {
+      generateVideo();
+    }
+  }, [apiKey]);
+
   const generateVideo = async () => {
     if (!text.trim()) return;
+    
+    const currentApiKey = getStoredApiKey();
+    if (!currentApiKey) {
+      setShowApiKeyForm(true);
+      return;
+    }
     
     setIsGenerating(true);
     setError(null);
@@ -30,6 +50,7 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
       console.log("Requesting video generation for:", text);
       const url = await generateSignLanguageVideo({
         prompt: text,
+        apiKey: currentApiKey,
       });
       
       console.log("Video generation result:", url);
@@ -46,6 +67,33 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
       setIsGenerating(false);
     }
   };
+
+  // If no API key is set, show the API key form
+  if (showApiKeyForm || !apiKey) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="glass-card p-6 rounded-2xl min-h-[400px] flex flex-col items-center justify-center">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-medium text-foreground/70 mb-1">API Key Required</h3>
+            <p className="text-sm text-muted-foreground">
+              To use the sign language video generation feature, you need to provide your fal.ai API key
+            </p>
+          </div>
+          
+          <ApiKeyForm />
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mt-4" 
+            onClick={() => setShowApiKeyForm(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -99,7 +147,17 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
                     className="text-center"
                   >
                     <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={generateVideo}>Try Again</Button>
+                    <div className="flex flex-col gap-2 items-center">
+                      <Button onClick={generateVideo}>Try Again</Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowApiKeyForm(true)}
+                        className="flex items-center gap-1"
+                      >
+                        <KeyRound className="h-4 w-4" /> Update API Key
+                      </Button>
+                    </div>
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -121,6 +179,15 @@ const FalVideoDisplay = ({ text }: FalVideoDisplayProps) => {
             <p className="text-sm text-muted-foreground mt-2">
               Your words will be transformed into sign language videos using fal.ai veo2
             </p>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowApiKeyForm(true)}
+              className="mt-4 flex items-center gap-1"
+            >
+              <KeyRound className="h-4 w-4" /> API Key Settings
+            </Button>
           </div>
         )}
       </div>
