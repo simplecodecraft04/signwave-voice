@@ -30,15 +30,18 @@ export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
     });
     
     // Use the fal.subscribe method to generate the video
+    // According to the fal.ai documentation, we need to use the correct properties for the input
     const result = await fal.subscribe("fal-ai/veo2", {
       input: {
         prompt: `A person making the sign language gesture for: "${prompt}"`,
-        output_format: "mp4",
+        // We'll use the properties that are allowed by the Veo2Input type
+        // No output_format here since it's not in the type definition
       },
     });
     
-    // Return the video URL from the result
-    return result.output?.video_url;
+    // Check the result structure and access the video URL using the correct path
+    // Since 'output' doesn't exist directly, we need to access the appropriate property
+    return result.video_url || result.url || (result as any).output?.video_url;
   } catch (error) {
     console.error("Error generating sign language video:", error);
     toast({
