@@ -1,55 +1,34 @@
 
-import { fal } from "@fal-ai/client";
 import { toast } from "@/hooks/use-toast";
 
-const getApiKey = (): string => {
-  const apiKey = localStorage.getItem("FAL_AI_API_KEY");
-  return apiKey || "";
-};
+const FAL_AI_API_KEY = "your-fal-ai-api-key-here"; // Replace with your actual fal.ai API key
 
 interface FalAiOptions {
   prompt: string;
 }
 
 export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
-  const apiKey = getApiKey();
-  
-  if (!apiKey) {
-    toast({
-      title: "API Key Missing",
-      description: "Please set your fal.ai API key in the settings first.",
-      variant: "destructive",
-    });
-    return null;
-  }
-  
   try {
-    // Configure fal client with the API key from localStorage
-    // The key format needs to be "fal_key_..." without additional text
-    fal.config({
-      credentials: apiKey,
-    });
-    
-    // Use the fal.subscribe method to generate the video
-    const result = await fal.subscribe("fal-ai/veo2", {
-      input: {
-        prompt: `A person making the sign language gesture for: "${prompt}"`,
+    const response = await fetch("https://api.fal.ai/v2/video", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Key ${FAL_AI_API_KEY}`,
       },
+      body: JSON.stringify({
+        model: "fal.ai/veo2",
+        prompt: `A person making the sign language gesture for: "${prompt}"`,
+        output_format: "mp4",
+      }),
     });
-    
-    // The response from fal.ai doesn't match the TypeScript definition perfectly
-    // We need to safely extract the video URL from wherever it might be in the response
-    const resultAny = result as any;
-    
-    // Try to find the video URL in various possible locations based on the API response structure
-    const videoUrl = resultAny.video_url || resultAny.url || resultAny.output?.video_url;
-    
-    if (!videoUrl) {
-      console.error("No video URL found in response:", resultAny);
-      throw new Error("No video URL found in API response");
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to generate video");
     }
-    
-    return videoUrl;
+
+    const data = await response.json();
+    return data.video_url;
   } catch (error) {
     console.error("Error generating sign language video:", error);
     toast({
