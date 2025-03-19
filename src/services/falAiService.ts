@@ -39,9 +39,13 @@ export const generateSignLanguageVideo = async ({ prompt }: FalAiOptions) => {
       },
     });
     
-    // Check the result structure and access the video URL using the correct path
-    // Since 'output' doesn't exist directly, we need to access the appropriate property
-    return result.video_url || result.url || (result as any).output?.video_url;
+    // The response from fal.ai doesn't match the TypeScript definition perfectly
+    // We need to safely extract the video URL from wherever it might be in the response
+    // Using type assertion to access possible properties
+    const resultAny = result as any;
+    
+    // Try to find the video URL in various possible locations based on the API response structure
+    return resultAny.video_url || resultAny.url || resultAny.output?.video_url;
   } catch (error) {
     console.error("Error generating sign language video:", error);
     toast({
