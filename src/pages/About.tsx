@@ -1,21 +1,21 @@
-
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
 const About = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 pt-24 pb-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <motion.section 
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <motion.section className="mb-16" initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }}>
             <div className="glass-card rounded-2xl p-8">
               <h1 className="text-3xl font-bold mb-6">About SignWave</h1>
               
@@ -54,18 +54,20 @@ const About = () => {
                 <h2 className="text-xl font-semibold mt-8 mb-4">Contact Us</h2>
                 
                 <p className="mb-4">
-                  We're always looking to improve SignWave and welcome feedback and suggestions. If you have ideas, questions, or would like to collaborate, please reach out to us at <a href="mailto:contact@signwave.app" className="text-primary hover:underline">contact@signwave.app</a>.
+                  We're always looking to improve SignWave and welcome feedback and suggestions. If you have ideas, questions, or would like to collaborate, please reach out to us at <a href="mailto:contact@signwave.app" className="text-primary hover:underline">ch.en.u4aie22079@ch.students.amrita.edu</a>.
                 </p>
               </div>
             </div>
           </motion.section>
           
-          <motion.section 
-            className="mb-16"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
+          <motion.section className="mb-16" initial={{
+          opacity: 0
+        }} animate={{
+          opacity: 1
+        }} transition={{
+          delay: 0.3,
+          duration: 0.6
+        }}>
             <div className="glass-card rounded-2xl p-8">
               <h2 className="text-2xl font-semibold mb-6">Our Team</h2>
               
@@ -92,8 +94,6 @@ const About = () => {
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default About;
