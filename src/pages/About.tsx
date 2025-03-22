@@ -36,9 +36,9 @@ const About = () => {
                 
                 <ul className="list-disc ml-6 mb-6 space-y-2">
                   <li>Advanced speech recognition for accurate transcription</li>
-                  <li>Visual sign language interpretation with smooth animations</li>
+                  <li>Fal.ai API integration for generating sign language videos</li>
+                  <li>Real-time processing with secure API credential management</li>
                   <li>Responsive design that works on all devices</li>
-                  <li>Real-time processing for immediate feedback</li>
                 </ul>
                 
                 <h2 className="text-xl font-semibold mt-8 mb-4">Our Vision</h2>
@@ -72,17 +72,17 @@ const About = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-primary/10 rounded-full mb-4 flex items-center justify-center">
-                    <span className="text-3xl">👩‍💻</span>
+                    <span className="text-3xl">👨‍💻</span>
                   </div>
-                  <h3 className="text-lg font-medium">Emma Johnson</h3>
+                  <h3 className="text-lg font-medium">Thomas F. Wolobah Jr</h3>
                   <p className="text-sm text-muted-foreground">Founder & Lead Developer</p>
                 </div>
                 
                 <div className="flex flex-col items-center">
                   <div className="w-24 h-24 bg-accent/10 rounded-full mb-4 flex items-center justify-center">
-                    <span className="text-3xl">👨‍🎨</span>
+                    <span className="text-3xl">👩‍🎨</span>
                   </div>
-                  <h3 className="text-lg font-medium">Michael Chen</h3>
+                  <h3 className="text-lg font-medium">P Himavarsha</h3>
                   <p className="text-sm text-muted-foreground">UX Designer</p>
                 </div>
               </div>

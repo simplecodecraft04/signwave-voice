@@ -91,7 +91,7 @@ const Index = () => {
                       🎬
                     </motion.span>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Video Generation</h3>
+                  <h3 className="text-lg font-medium mb-2">Fal.ai Integration</h3>
                   <p className="text-muted-foreground text-sm">
                     AI-powered conversion of text to sign language videos
                   </p>
