@@ -1,6 +1,8 @@
+
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+
 const About = () => {
   return <div className="min-h-screen flex flex-col">
       <Header />
@@ -51,6 +53,42 @@ const About = () => {
                   Our long-term goal is to expand SignWave's capabilities to support multiple sign languages from around the world and to develop more comprehensive learning tools for sign language education.
                 </p>
                 
+                <h2 className="text-xl font-semibold mt-8 mb-4">Methodology</h2>
+                
+                <p className="mb-4">
+                  The SignWave project follows a comprehensive methodology that combines various technologies and approaches:
+                </p>
+                
+                <ol className="list-decimal ml-6 mb-6 space-y-4">
+                  <li>
+                    <strong>Speech Recognition:</strong> Using browser-based Web Speech API to capture and transcribe spoken language in real-time. This provides the textual input that will be translated into sign language.
+                  </li>
+                  
+                  <li>
+                    <strong>Text Processing:</strong> The transcribed text undergoes processing to optimize it for sign language translation, including breaking down complex sentences and identifying key concepts.
+                  </li>
+                  
+                  <li>
+                    <strong>API Integration:</strong> The processed text is sent to the Fal.ai API, which specializes in generating visual content. Our implementation communicates with their video generation model specifically trained for sign language gestures.
+                  </li>
+                  
+                  <li>
+                    <strong>Video Rendering:</strong> The resulting sign language video is fetched from the API response and displayed to the user through our custom video player component.
+                  </li>
+                  
+                  <li>
+                    <strong>Responsive UI/UX:</strong> The entire application is built with React and Tailwind CSS to ensure a responsive, accessible interface that works across different devices and screen sizes.
+                  </li>
+                  
+                  <li>
+                    <strong>Error Handling:</strong> Robust error handling mechanisms ensure that users are informed of any issues that might arise during the speech recognition or video generation process.
+                  </li>
+                  
+                  <li>
+                    <strong>Continuous Development:</strong> We follow an iterative development process, constantly improving our algorithms and UI based on user feedback and technological advancements.
+                  </li>
+                </ol>
+                
                 <h2 className="text-xl font-semibold mt-8 mb-4">Contact Us</h2>
                 
                 <p className="mb-4">
@@ -96,4 +134,5 @@ const About = () => {
       <Footer />
     </div>;
 };
+
 export default About;

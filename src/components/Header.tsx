@@ -49,7 +49,7 @@ const Header = () => {
           <Link to="/" className="text-foreground/80 hover:text-primary transition-colors font-medium">Home</Link>
           <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors font-medium">About</Link>
           <a 
-            href="https://github.com" 
+            href="https://github.com/simplecodecraft04/signwave-voice" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors font-medium"
@@ -100,7 +100,7 @@ const Header = () => {
                 About
               </Link>
               <a 
-                href="https://github.com" 
+                href="https://github.com/simplecodecraft04/signwave-voice" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xl font-medium"
