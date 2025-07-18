@@ -37,10 +37,10 @@ const About = () => {
                 </p>
                 
                 <ul className="list-disc ml-6 mb-6 space-y-2">
-                  <li>Advanced speech recognition for accurate transcription</li>
-                  <li>Fal.ai API integration for generating sign language videos</li>
-                  <li>Real-time processing with secure API credential management</li>
-                  <li>Responsive design that works on all devices</li>
+                  <li>Advanced speech recognition for accurate transcription.</li>
+                  <li>Fal.ai API integration for generating sign language videos.</li>
+                  <li>Real-time processing with secure API credential management.</li>
+                  <li>Responsive design that works on all devices.</li>
                 </ul>
                 
                 <h2 className="text-xl font-semibold mt-8 mb-4">Our Vision</h2>
